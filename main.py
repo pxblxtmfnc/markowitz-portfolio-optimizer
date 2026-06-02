@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from data_loader import download_price_data
-from metrics import calculate_log_returns, annualize_returns, annualize_covariance
+from metrics import calculate_log_returns, annualize_returns, annualize_covariance, benchmark_metrics
 from optimizer import (
     optimize_max_sharpe,
     optimize_min_variance,
@@ -52,6 +52,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=10_000,
         help="Number of random portfolio simulations (default: 10000)",
     )
+    parser.add_argument(
+        "--benchmark",
+        type=str,
+        default="SPY",
+        help="Benchmark ticker to compare against (default: SPY)",
+    )
     return parser
 
 
@@ -68,12 +74,23 @@ def _print_portfolio(label: str, result: dict) -> None:
         print(f"    {ticker:<10} {weight:>7.2%}")
 
 
+def _print_benchmark(bm: dict) -> None:
+    """Print benchmark metrics to the terminal."""
+    print(f"\n{'─' * 42}")
+    print(f"  Benchmark: {bm['ticker']}")
+    print(f"{'─' * 42}")
+    print(f"  Return:     {bm['return']:>8.2%}")
+    print(f"  Volatility: {bm['volatility']:>8.2%}")
+    print(f"  Sharpe:     {bm['sharpe_ratio']:>8.4f}")
+
+
 def _save_plot(
     random_portfolios: pd.DataFrame,
     frontier: pd.DataFrame,
     max_sharpe: dict,
     min_var: dict,
     output_path: str,
+    benchmark: dict | None = None,
 ) -> None:
     """Render efficient frontier chart and save to disk without opening a window."""
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -119,6 +136,18 @@ def _save_plot(
         label="Min Variance",
     )
 
+    if benchmark is not None:
+        ax.scatter(
+            benchmark["volatility"],
+            benchmark["return"],
+            marker="s",
+            color="cyan",
+            edgecolors="black",
+            s=150,
+            zorder=5,
+            label=f"{benchmark['ticker']} (SR={benchmark['sharpe_ratio']:.2f})",
+        )
+
     ax.set_xlabel("Annualized Volatility")
     ax.set_ylabel("Annualized Return")
     ax.set_title("Efficient Frontier — Markowitz Portfolio Optimization")
@@ -136,9 +165,10 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
-    print(f"Tickers: {', '.join(args.tickers)}")
-    print(f"Period:  {args.start} → {args.end}")
-    print(f"Rf rate: {args.risk_free_rate:.2%}  |  Simulations: {args.simulations:,}")
+    print(f"Tickers:   {', '.join(args.tickers)}")
+    print(f"Benchmark: {args.benchmark}")
+    print(f"Period:    {args.start} → {args.end}")
+    print(f"Rf rate:   {args.risk_free_rate:.2%}  |  Simulations: {args.simulations:,}")
 
     print("\nDownloading price data...")
     try:
@@ -150,6 +180,20 @@ def main() -> None:
     log_returns = calculate_log_returns(prices)
     expected_returns = annualize_returns(log_returns)
     cov_matrix = annualize_covariance(log_returns)
+
+    print(f"Downloading benchmark data ({args.benchmark})...")
+    benchmark: dict | None = None
+    try:
+        benchmark_prices = download_price_data([args.benchmark], args.start, args.end)
+        b_ret, b_vol, b_sr = benchmark_metrics(benchmark_prices, args.risk_free_rate)
+        benchmark = {
+            "ticker": args.benchmark,
+            "return": b_ret,
+            "volatility": b_vol,
+            "sharpe_ratio": b_sr,
+        }
+    except ValueError as exc:
+        print(f"Warning: Could not load benchmark data: {exc}", file=sys.stderr)
 
     print("Running optimizations...")
     try:
@@ -165,10 +209,12 @@ def main() -> None:
 
     _print_portfolio("Maximum Sharpe Ratio Portfolio", max_sharpe)
     _print_portfolio("Minimum Variance Portfolio", min_var)
+    if benchmark is not None:
+        _print_benchmark(benchmark)
 
     os.makedirs("outputs", exist_ok=True)
     output_path = os.path.join("outputs", "efficient_frontier.png")
-    _save_plot(random_portfolios, frontier, max_sharpe, min_var, output_path)
+    _save_plot(random_portfolios, frontier, max_sharpe, min_var, output_path, benchmark)
     print(f"\nChart saved → {output_path}")
 
 

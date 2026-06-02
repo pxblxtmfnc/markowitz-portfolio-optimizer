@@ -18,6 +18,7 @@ This tool downloads historical price data, computes key portfolio metrics, and i
 - Finds the **minimum variance** portfolio
 - Runs **Monte Carlo simulations** to visualize the portfolio space
 - Plots the **efficient frontier** and saves it as a `.png` file
+- **Benchmark comparison** against any ticker (default: SPY) — prints annualized return, volatility, and Sharpe Ratio, and marks the benchmark on the frontier chart
 - Clean CLI interface with `argparse`
 
 ---
@@ -54,6 +55,12 @@ pip install -r requirements.txt
 python main.py --tickers AAPL MSFT NVDA --start 2020-01-01 --end 2024-01-01 --risk-free-rate 0.02 --simulations 5000
 ```
 
+With a custom benchmark:
+
+```bash
+python main.py --tickers AAPL MSFT NVDA --start 2020-01-01 --end 2024-01-01 --risk-free-rate 0.02 --simulations 5000 --benchmark QQQ
+```
+
 ### Arguments
 
 | Argument | Description | Default |
@@ -63,13 +70,14 @@ python main.py --tickers AAPL MSFT NVDA --start 2020-01-01 --end 2024-01-01 --ri
 | `--end` | End date (YYYY-MM-DD) | required |
 | `--risk-free-rate` | Annual risk-free rate as a decimal | `0.0` |
 | `--simulations` | Number of random portfolios to simulate | `10000` |
+| `--benchmark` | Benchmark ticker for comparison | `SPY` |
 
 ---
 
 ## Outputs
 
-- **Terminal:** Prints the weights, expected return, volatility, and Sharpe Ratio for both optimal portfolios.
-- **`outputs/efficient_frontier.png`:** Scatter plot of simulated portfolios colored by Sharpe Ratio, with the efficient frontier curve and both optimal portfolios highlighted.
+- **Terminal:** Prints the weights, expected return, volatility, and Sharpe Ratio for both optimal portfolios, plus annualized metrics for the benchmark.
+- **`outputs/efficient_frontier.png`:** Scatter plot of simulated portfolios colored by Sharpe Ratio, with the efficient frontier curve, both optimal portfolios, and the benchmark highlighted.
 ![Efficient Frontier](assets/efficient_frontier.png)
 ---
 

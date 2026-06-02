@@ -63,3 +63,15 @@ def portfolio_performance(
     vol = portfolio_volatility(weights, cov_matrix)
     sr = sharpe_ratio(ret, vol, risk_free_rate)
     return ret, vol, sr
+
+
+def benchmark_metrics(
+    prices: pd.DataFrame,
+    risk_free_rate: float = 0.0,
+) -> tuple[float, float, float]:
+    """Return (annualized_return, annualized_volatility, sharpe_ratio) for a single-asset benchmark."""
+    log_rets = calculate_log_returns(prices)
+    ann_ret = float(annualize_returns(log_rets).iloc[0])
+    ann_vol = float(log_rets.std().iloc[0] * np.sqrt(TRADING_DAYS))
+    sr = sharpe_ratio(ann_ret, ann_vol, risk_free_rate)
+    return ann_ret, ann_vol, sr
