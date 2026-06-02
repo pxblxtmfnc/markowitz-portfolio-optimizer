@@ -1,4 +1,5 @@
 # Markowitz Portfolio Optimizer
+![Efficient Frontier with SPY Benchmark](assets/efficient_frontier.png)
 
 A Python CLI tool for portfolio risk analysis and asset allocation optimization based on Modern Portfolio Theory (MPT).
 
@@ -78,7 +79,6 @@ python main.py --tickers AAPL MSFT NVDA --start 2020-01-01 --end 2024-01-01 --ri
 
 - **Terminal:** Prints the weights, expected return, volatility, and Sharpe Ratio for both optimal portfolios, plus annualized metrics for the benchmark.
 - **`outputs/efficient_frontier.png`:** Scatter plot of simulated portfolios colored by Sharpe Ratio, with the efficient frontier curve, both optimal portfolios, and the benchmark highlighted.
-![Efficient Frontier](assets/efficient_frontier.png)
 ---
 
 ## Financial Methodology
