@@ -70,7 +70,7 @@ python main.py --tickers AAPL MSFT NVDA --start 2020-01-01 --end 2024-01-01 --ri
 
 - **Terminal:** Prints the weights, expected return, volatility, and Sharpe Ratio for both optimal portfolios.
 - **`outputs/efficient_frontier.png`:** Scatter plot of simulated portfolios colored by Sharpe Ratio, with the efficient frontier curve and both optimal portfolios highlighted.
-
+![Efficient Frontier](assets/efficient_frontier.png)
 ---
 
 ## Financial Methodology
